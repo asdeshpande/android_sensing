@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 
 public class SensorDetail extends Activity {
@@ -14,9 +16,10 @@ public class SensorDetail extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensor_detail);
-
-        Intent intent   = getIntent();
-        int position    = intent.getIntExtra("position", 0);
+        Intent intent = getIntent();
+        String sensorValues = intent.getStringExtra("values");
+        TextView txtbox = (TextView) findViewById(R.id.textView1);
+        txtbox.setText(sensorValues);
     }
 
 

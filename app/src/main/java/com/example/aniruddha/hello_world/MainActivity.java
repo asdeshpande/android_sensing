@@ -2,31 +2,35 @@ package com.example.aniruddha.hello_world;
 
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorEvent;
 import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class MainActivity extends Activity implements SensorEventListener {
 
-    private SensorManager       sMgr;
-    private Sensor              activeSensor;
-    private TextView            sensor1;
-
-    private List<Sensor>        list;
-
+    private SensorManager               sMgr;
+    private Sensor                      activeSensor;
+    private TextView                    sensor1;
+    private List<Sensor>                list;
+    private RecyclerView                sensorList;
+    private RecyclerView.Adapter        rAdapter;
+    private RecyclerView.LayoutManager  rLayoutmngr;
+    private String                      data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,20 +44,28 @@ public class MainActivity extends Activity implements SensorEventListener {
             sensorNames.add(sensor.getName());
             // Log.d("names", sensor.getName());
         }
-       //   accelerometer = sMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-          sensor1 = (TextView) findViewById(R.id.textView1);
-        final ListView sensorList = (ListView) findViewById(R.id.listView1);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sensorNames);
-        sensorList.setAdapter(adapter);
-        sensorList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                 deactivate();
-                 activeSensor = list.get(position);
-                 activate();
-                 Log.d("sensor", activeSensor.getName());
-            }
-        });
+
+        sensorList  = (RecyclerView)findViewById(R.id.recycler_view);
+        rLayoutmngr = new LinearLayoutManager(this);
+        sensorList.setLayoutManager(rLayoutmngr);
+        rAdapter    = new MyAdapter(sensorNames.toArray(new String[0]));
+        sensorList.setAdapter(rAdapter);
+        sensorList.addOnItemTouchListener(
+                new MyAdapter(getBaseContext(), new MyAdapter.OnItemClickListener(){
+                    @Override
+                    public void onItemClick(View view, int position){
+                        //deactivate();
+                        activeSensor = list.get(position);
+                        activate();
+                        Intent intent = new Intent();
+                        intent.setClass(getBaseContext(), SensorDetail.class);
+                        intent.putExtra("values",data);
+                        startActivity(intent);
+
+                    }
+                })
+        );
+
     }
 
     protected void updateTxt(TextView box,String data) {
@@ -63,20 +75,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void activate() {
         super.onResume();
         sMgr.registerListener(this, activeSensor, SensorManager.SENSOR_DELAY_NORMAL);
-
     }
 
-    protected void deactivate() {
+    protected void onPause() {
         super.onPause();
         sMgr.unregisterListener(this);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-
         float [] value = event.values;
-        String data = value[0] + " " + value[1] + " " + value[2];
-        updateTxt(sensor1, data);
+        data = value[0] + " " + value[1] + " " + value[2];
+        Log.d("values", data);
     }
 
     @Override
